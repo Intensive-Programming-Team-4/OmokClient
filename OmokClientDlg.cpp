@@ -8,6 +8,8 @@
 #include "OmokClientDlg.h"
 #include "afxdialogex.h"
 
+#include "DlgConnect.h"		// 연결 다이얼로그
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -52,6 +54,10 @@ END_MESSAGE_MAP()
 
 COmokClientDlg::COmokClientDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_OMOKCLIENT_DIALOG, pParent)
+	, m_strSend(_T(""))
+	, m_strConnect(_T("접속 전입니다."))
+	, m_strMe(_T("대기중"))
+	, m_strStatus(_T("대기중"))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -59,12 +65,18 @@ COmokClientDlg::COmokClientDlg(CWnd* pParent /*=nullptr*/)
 void COmokClientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT_SEND, m_strSend);
+	DDX_Control(pDX, IDC_LIST1, m_list);
+	DDX_Text(pDX, IDC_STATIC_CONNECT, m_strConnect);
+	DDX_Text(pDX, IDC_STATIC_ME, m_strMe);
+	DDX_Text(pDX, IDC_STATIC_STATUS, m_strStatus);
 }
 
 BEGIN_MESSAGE_MAP(COmokClientDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_BUTTON_CONNECT, &COmokClientDlg::OnBnClickedButtonConnect)
 END_MESSAGE_MAP()
 
 
@@ -153,3 +165,40 @@ HCURSOR COmokClientDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void COmokClientDlg::OnBnClickedButtonConnect()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+		// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CDlgConnect* dlg = new CDlgConnect;
+
+	if (dlg->DoModal() == IDOK) {
+		m_socCom.Create();
+
+		// 접속 성공 시
+		if (m_socCom.Connect(dlg->m_strIP, 5000)) {
+			m_socCom.Init(this->m_hWnd);
+			m_strConnect = _T("접속성공");
+			m_strStatus = _T("게임을 초기화 하십시오.");
+
+			m_bConnect = TRUE;
+			// 전송버튼 활성화
+			GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+			// 접속버튼 비활성화
+			GetDlgItem(IDC_BUTTON_CONNECT)->EnableWindow(FALSE);
+		}
+		else {
+			CString strErr;
+
+			strErr.Format(_T("ERROR : Fail to connect Server (ERROR CODE : %d)"), m_socCom.GetLastError());
+			MessageBox(strErr);
+			m_strConnect = _T("접속실패");
+			m_strStatus = _T("서버 접속에 실패 했습니다.");
+
+			m_bConnect = FALSE;
+			GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
+		}
+		UpdateData(FALSE);
+	}
+}

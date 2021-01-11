@@ -32,4 +32,22 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	CString m_strSend;
+	CListBox m_list;
+	CString m_strConnect;
+	CString m_strMe;
+	CString m_strStatus;
+	afx_msg void OnBnClickedButtonConnect();
+
+
+
+	int m_iOrder;
+
+	BOOL m_bConnect;	// 다른쪽과 접속했을때 TRUE
+	BOOL m_bStartSvr;	// 서버가 준비 끝나면 TRUE
+	BOOL m_bStart;		// 1~25를 다 채우면 TRUE
+	BOOL m_bMe;			// 내가 선택할 차예이면 TRUE
+	BOOL m_bCntEnd;		// 클라이언트가 끝났는지 검사
+	BOOL m_bSvrEnd;		// 서버가 끝났는지 검사
 };
