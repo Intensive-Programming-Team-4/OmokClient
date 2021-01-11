@@ -113,6 +113,10 @@ BOOL COmokClientDlg::OnInitDialog()
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 
+	// 방화벽 개방
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return -1;
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -201,4 +205,70 @@ void COmokClientDlg::OnBnClickedButtonConnect()
 		}
 		UpdateData(FALSE);
 	}
+}
+
+
+LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
+	// 접속된 곳에서 데이터가 도착했을 때
+
+	char pTmp[256];
+	CString strTmp, str;
+	memset(pTmp, '\0', 256);
+
+	// 데이터를 pTmp에 받는다
+	m_socCom.Receive(pTmp, 256);
+
+	// strTmp에 헤더 저장
+	strTmp.Format(_T("%c"), pTmp[0]);
+
+	int iType = atoi((char*)(LPCTSTR)strTmp);
+
+	if (iType == SOC_GAMESTART) {
+		m_bStartSvr = TRUE;
+
+		if (m_bStart) {
+			m_strMe = _T("상대방의 차례입니다.");
+			m_strStatus = _T("대기 하세요.");
+			m_bMe = FALSE;
+			UpdateData(FALSE);
+		}
+
+	}
+
+	// 채팅
+	else if (iType == SOC_TEXT) {
+		str.Format(_T("%s"), (LPCTSTR)(pTmp + 1));
+		m_list.AddString(str);
+	}
+
+	// 보드판 클릭
+	else if (iType == SOC_CHECK) {
+		str.Format(_T("%s"), (LPCTSTR)(pTmp + 1));
+		int iRow = -1, iCol = -1;
+		//NumToIndex(atoi((char*)(LPCTSTR)str), iRow, iCol);
+
+		//DrawCheck(iRow, iCol);
+
+		// 차례 변경
+		m_bMe = TRUE;
+		m_strMe = _T("당신의 차례입니다.");
+		m_strStatus = _T("원하는 곳을 선택 하세요.");
+		UpdateData(FALSE);
+
+		//if (IsGameEnd()) {
+		//	m_bCntEnd = TRUE;
+		//	SendGame(SOC_GAMEEND, "");
+		//	Sleep(1000);
+		//	SetGameEnd();
+		//	InitGame(); // 추가
+		//	Invalidate(TRUE); // 추가
+		//}
+	}
+
+	else if (iType == SOC_GAMEEND) {
+		m_bSvrEnd = TRUE;
+		Sleep(1000);
+		//SetGameEnd();
+	}
+	return TRUE;
 }
