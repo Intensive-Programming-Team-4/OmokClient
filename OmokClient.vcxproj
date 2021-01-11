@@ -183,6 +183,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DlgConnect.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="OmokClient.h" />
     <ClInclude Include="OmokClientDlg.h" />
@@ -192,6 +193,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DlgConnect.cpp" />
     <ClCompile Include="OmokClient.cpp" />
     <ClCompile Include="OmokClientDlg.cpp" />
     <ClCompile Include="pch.cpp">
