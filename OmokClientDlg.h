@@ -31,6 +31,7 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	afx_msg LPARAM OnReceive(UINT wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_strSend;
