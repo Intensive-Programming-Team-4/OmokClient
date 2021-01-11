@@ -77,6 +77,8 @@ BEGIN_MESSAGE_MAP(COmokClientDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON_CONNECT, &COmokClientDlg::OnBnClickedButtonConnect)
+	ON_BN_CLICKED(IDC_BUTTON_SEND, &COmokClientDlg::OnBnClickedButtonSend)
+	ON_MESSAGE(UM_RECEIVE, (LRESULT(AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM))OnReceive)
 END_MESSAGE_MAP()
 
 
@@ -271,4 +273,35 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		//SetGameEnd();
 	}
 	return TRUE;
+}
+
+void COmokClientDlg::OnBnClickedButtonSend()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
+
+	char pTmp[256];
+	CString strTmp;
+	memset(pTmp, '\0', 256);
+	memcpy(pTmp, (unsigned char*)(LPCTSTR)m_strSend, 256);
+	//strcpy(pTmp, LPSTR(LPCTSTR(m_strSend)));
+
+	// 전송
+	SendGame(SOC_TEXT, m_strSend);
+
+	// 전송한 데이터도 리스트박스에 보여준다
+	strTmp.Format(_T("%s"), (LPCTSTR)pTmp);
+	int i = m_list.GetCount();
+	m_list.InsertString(i, strTmp);
+}
+
+// 데이터 전송
+void COmokClientDlg::SendGame(int iType, CString strTmp) {
+
+	UpdateData(TRUE);
+	char pTmp[256];
+	memset(pTmp, '\0', 256);
+	sprintf(pTmp, "%d%s", iType, (LPSTR)(LPCTSTR)strTmp);
+
+	m_socCom.Send(pTmp, 256);
 }

@@ -51,4 +51,6 @@ public:
 	BOOL m_bMe;			// 내가 선택할 차예이면 TRUE
 	BOOL m_bCntEnd;		// 클라이언트가 끝났는지 검사
 	BOOL m_bSvrEnd;		// 서버가 끝났는지 검사
+	afx_msg void OnBnClickedButtonSend();
+	void SendGame(int iType, CString strTmp);
 };
