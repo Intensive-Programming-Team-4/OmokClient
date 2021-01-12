@@ -16,7 +16,6 @@
 #define IDC_STATIC_CONNECT              1006
 #define IDC_STATIC_ME                   1007
 #define IDC_STATIC_STATUS               1008
-#define IDC_BUTTON1                     1009
 #define IDC_BUTTON_START                1009
 
 // Next default values for new objects
