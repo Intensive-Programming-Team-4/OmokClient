@@ -70,6 +70,7 @@ void COmokClientDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_STATIC_CONNECT, m_strConnect);
 	DDX_Text(pDX, IDC_STATIC_ME, m_strMe);
 	DDX_Text(pDX, IDC_STATIC_STATUS, m_strStatus);
+	DDX_Control(pDX, IDC_STATIC_TIMER, m_timer);
 }
 
 BEGIN_MESSAGE_MAP(COmokClientDlg, CDialogEx)
@@ -81,6 +82,7 @@ BEGIN_MESSAGE_MAP(COmokClientDlg, CDialogEx)
 	ON_MESSAGE(UM_RECEIVE, (LRESULT(AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM))OnReceive)
 	ON_WM_LBUTTONDOWN()
 	ON_BN_CLICKED(IDC_BUTTON_START, &COmokClientDlg::OnBnClickedButtonStart)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -192,6 +194,7 @@ void COmokClientDlg::InitGame()
 	m_bSvrEnd = FALSE;
 	m_bCntEnd = FALSE;
 	m_iOrder = 1;
+	SetTimer(1, 1000, NULL);
 }
 
 // 사각형 그리기 (250 *250 시작은 (35, 35))
@@ -313,22 +316,26 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		int iRow = atoi(str.Left(2));
 		int iCol = atoi(str.Right(2));
 
-		// 바둑알 놓기
-		CClientDC dc(this);
-		CBrush* p_old_brush;
+		if (iRow == -1 && iCol == -1) {
+			// 타이머의 시간초과로 넘어온 경우
+		}
+		else {
+			// 바둑알 놓기
+			CClientDC dc(this);
+			CBrush* p_old_brush;
 
-		// 흑돌(서버쪽)
-		p_old_brush = (CBrush*)dc.SelectStockObject(BLACK_BRUSH);
+			// 흑돌(서버쪽)
+			p_old_brush = (CBrush*)dc.SelectStockObject(BLACK_BRUSH);
 
-		CString msg;
-		iCol = (iCol + 1) * 35;
-		iRow = (iRow + 1) * 35;
+			CString msg;
+			iCol = (iCol + 1) * 35;
+			iRow = (iRow + 1) * 35;
 
-		msg.Format(_T("%03d %03d"), iRow , iCol);
-		//MessageBox(msg);
-		dc.Ellipse(iCol - 35 / 2, iRow - 35 / 2, iCol + 35 / 2, iRow + 35 / 2);
-		dc.SelectObject(p_old_brush);
-
+			msg.Format(_T("%03d %03d"), iRow, iCol);
+			//MessageBox(msg);
+			dc.Ellipse(iCol - 35 / 2, iRow - 35 / 2, iCol + 35 / 2, iRow + 35 / 2);
+			dc.SelectObject(p_old_brush);
+		}
 
 		// 차례 변경
 		m_bMe = TRUE;
@@ -428,4 +435,35 @@ void COmokClientDlg::OnBnClickedButtonStart()
 	SendGame(SOC_GAMESTART, "");
 	m_bStart = TRUE;
 	GetDlgItem(IDC_BUTTON_START)->EnableWindow(FALSE);
+}
+
+
+void COmokClientDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	CString time;
+
+	switch (nIDEvent) {
+	case 1:
+		if (m_bStart && m_bMe) {
+			if (sec > 0) {
+				time.Format(_T("%d"), sec--);
+			}
+			else {
+				m_bMe = FALSE;
+
+				CString str;
+				str.Format(_T("%02d,%02d"), -1, -1);
+				SendGame(SOC_CHECK, str);
+			}
+		}
+		else {
+			sec = 30;
+			time.Format(_T("%d"), sec);
+		}
+		m_timer.SetWindowText(time);
+		break;
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }
