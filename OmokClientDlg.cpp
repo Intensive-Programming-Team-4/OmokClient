@@ -80,6 +80,7 @@ BEGIN_MESSAGE_MAP(COmokClientDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_SEND, &COmokClientDlg::OnBnClickedButtonSend)
 	ON_MESSAGE(UM_RECEIVE, (LRESULT(AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM))OnReceive)
 	ON_WM_LBUTTONDOWN()
+	ON_BN_CLICKED(IDC_BUTTON_START, &COmokClientDlg::OnBnClickedButtonStart)
 END_MESSAGE_MAP()
 
 
@@ -226,13 +227,15 @@ void COmokClientDlg::OnBnClickedButtonConnect()
 		if (m_socCom.Connect(dlg->m_strIP, 5000)) {
 			m_socCom.Init(this->m_hWnd);
 			m_strConnect = _T("접속성공");
-			m_strStatus = _T("게임을 초기화 하십시오.");
+			m_strStatus = _T("준비버튼을 눌러주세요.");
 
 			m_bConnect = TRUE;
 			// 전송버튼 활성화
 			GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
 			// 접속버튼 비활성화
 			GetDlgItem(IDC_BUTTON_CONNECT)->EnableWindow(FALSE);
+			// 준비버튼 활성화
+			GetDlgItem(IDC_BUTTON_START)->EnableWindow(TRUE);
 		}
 		else {
 			CString strErr;
@@ -267,8 +270,9 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 
 	if (iType == SOC_GAMESTART) {
 		m_bStartSvr = TRUE;
-
+		
 		if (m_bStart) {
+			MessageBox(_T("게임이 시작되었습니다."));
 			m_strMe = _T("상대방의 차례입니다.");
 			m_strStatus = _T("대기 하세요.");
 			m_bMe = FALSE;
@@ -285,26 +289,35 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 
 	// 보드판 클릭
 	else if (iType == SOC_CHECK) {
+		
 		str.Format(_T("%s"), (LPCTSTR)(pTmp + 1));
-		int iRow = -1, iCol = -1;
-		//NumToIndex(atoi((char*)(LPCTSTR)str), iRow, iCol);
+		CString i, j;
 
-		//DrawCheck(iRow, iCol);
+		int iRow = atoi(str.Left(2));
+		int iCol = atoi(str.Right(2));
+
+		// 바둑알 놓기
+		CClientDC dc(this);
+		CBrush* p_old_brush;
+
+		// 흑돌(서버쪽)
+		p_old_brush = (CBrush*)dc.SelectStockObject(BLACK_BRUSH);
+
+		CString msg;
+		iCol = (iCol + 1) * 35;
+		iRow = (iRow + 1) * 35;
+
+		msg.Format(_T("%03d %03d"), iRow , iCol);
+		//MessageBox(msg);
+		dc.Ellipse(iCol - 35 / 2, iRow - 35 / 2, iCol + 35 / 2, iRow + 35 / 2);
+		dc.SelectObject(p_old_brush);
+
 
 		// 차례 변경
 		m_bMe = TRUE;
 		m_strMe = _T("당신의 차례입니다.");
 		m_strStatus = _T("원하는 곳을 선택 하세요.");
 		UpdateData(FALSE);
-
-		//if (IsGameEnd()) {
-		//	m_bCntEnd = TRUE;
-		//	SendGame(SOC_GAMEEND, "");
-		//	Sleep(1000);
-		//	SetGameEnd();
-		//	InitGame(); // 추가
-		//	Invalidate(TRUE); // 추가
-		//}
 	}
 
 	else if (iType == SOC_GAMEEND) {
@@ -353,29 +366,45 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	// 게임과 관련 없는 곳 클릭 시
 	if (point.x > 560 || point.y > 560)	return;
 	if (point.x < 35 || point.y < 35)	return;
-	//if (!m_bConnect)	return;
+	if (!m_bConnect)	return;
 
-	CString msg;
+	if (m_bStart && m_bStartSvr && m_bMe) {
+		// 바둑알 놓기
+		CClientDC dc(this);
+		CBrush* p_old_brush;
 
-	msg.Format(_T("%2d %02d"), point.x, point.y);
+		// 백돌
+		p_old_brush = (CBrush*)dc.SelectStockObject(WHITE_BRUSH);
 
-	// 바둑알 놓기
-	CClientDC dc(this);
-	CBrush* p_old_brush;
+		point.x = ((point.x + 35 / 2) / 35) * 35;//격 맞춤
+		point.y = ((point.y + 35 / 2) / 35) * 35;
 
-	// 흑돌이면
-	p_old_brush = (CBrush*)dc.SelectStockObject(BLACK_BRUSH);
-
-	// 백돌이면
-	p_old_brush = (CBrush*)dc.SelectStockObject(WHITE_BRUSH);
+		int i = point.y / 35 - 1;
+		int j = point.x / 35 - 1;
+		m_bGame[i][j] = TRUE;
 
 
-	point.x = ((point.x + 35 / 2) / 35) * 35;//격 맞춤
-	point.y = ((point.y + 35 / 2) / 35) * 35;
-	dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
-	dc.SelectObject(p_old_brush);
+		dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
+		dc.SelectObject(p_old_brush);
+
+		CString str;
+		str.Format(_T("%02d,%02d"), i, j);
+		SendGame(SOC_CHECK, str);
+		// 차례 변경
+		m_bMe = FALSE;
+		m_strMe = _T("상대방의 차례 입니다.");
+		m_strStatus = _T("대기하세요.");
+		UpdateData(FALSE);
+	}
 
 	CDialogEx::OnLButtonDown(nFlags, point);
+}
 
-	CDialogEx::OnLButtonDown(nFlags, point);
+
+void COmokClientDlg::OnBnClickedButtonStart()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	SendGame(SOC_GAMESTART, "");
+	m_bStart = TRUE;
+	GetDlgItem(IDC_BUTTON_START)->EnableWindow(FALSE);
 }
