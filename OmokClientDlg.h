@@ -42,6 +42,7 @@ public:
 	afx_msg void OnBnClickedButtonConnect();
 
 	BOOL m_bGame[15][15];
+	BOOL m_bStone[15][15];
 
 	int m_iOrder;
 
