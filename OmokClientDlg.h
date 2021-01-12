@@ -41,7 +41,7 @@ public:
 	CString m_strStatus;
 	afx_msg void OnBnClickedButtonConnect();
 
-
+	BOOL m_bGame[15][15];
 
 	int m_iOrder;
 
@@ -56,4 +56,5 @@ public:
 	void DrawLine();
 	void SendGame(int iType, CString strTmp);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnBnClickedButtonStart();
 };
