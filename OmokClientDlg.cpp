@@ -121,6 +121,8 @@ BOOL COmokClientDlg::OnInitDialog()
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return -1;
+	// 게임 초기화
+	InitGame();
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -175,6 +177,21 @@ void COmokClientDlg::OnPaint()
 HCURSOR COmokClientDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+
+void COmokClientDlg::InitGame()
+{
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 15; j++) {
+			m_bGame[i][j] = FALSE;
+		}
+	}
+	m_bStartSvr = FALSE;
+	m_bStart = FALSE;
+	m_bMe = FALSE;
+	m_bSvrEnd = FALSE;
+	m_bCntEnd = FALSE;
+	m_iOrder = 1;
 }
 
 // 사각형 그리기 (250 *250 시작은 (35, 35))
@@ -381,20 +398,24 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 
 		int i = point.y / 35 - 1;
 		int j = point.x / 35 - 1;
-		m_bGame[i][j] = TRUE;
+
+		if (!m_bGame[i][j]) {
+			m_bGame[i][j] = TRUE;
 
 
-		dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
-		dc.SelectObject(p_old_brush);
+			dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
+			dc.SelectObject(p_old_brush);
 
-		CString str;
-		str.Format(_T("%02d,%02d"), i, j);
-		SendGame(SOC_CHECK, str);
-		// 차례 변경
-		m_bMe = FALSE;
-		m_strMe = _T("상대방의 차례 입니다.");
-		m_strStatus = _T("대기하세요.");
-		UpdateData(FALSE);
+			CString str;
+			str.Format(_T("%02d,%02d"), i, j);
+			SendGame(SOC_CHECK, str);
+			// 차례 변경
+			m_bMe = FALSE;
+			m_strMe = _T("상대방의 차례 입니다.");
+			m_strStatus = _T("대기하세요.");
+			UpdateData(FALSE);
+		}
+
 	}
 
 	CDialogEx::OnLButtonDown(nFlags, point);
