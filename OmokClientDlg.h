@@ -59,4 +59,7 @@ public:
 	void SendGame(int iType, CString strTmp);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedButtonStart();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	CStatic m_timer;
+	int sec = 30;
 };
