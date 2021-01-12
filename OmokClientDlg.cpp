@@ -338,10 +338,14 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		UpdateData(FALSE);
 	}
 
+	// 게임에서 패배시
 	else if (iType == SOC_GAMEEND) {
 		m_bSvrEnd = TRUE;
 		CWnd::MessageBox("흑이 승리했습니다. 새 게임을 시작합니다.", "흑돌 승리", MB_OK);
 		Sleep(1000);
+		InitGame();
+		Invalidate(TRUE);
+		GetDlgItem(IDC_BUTTON_START)->EnableWindow(TRUE);
 	}
 	return TRUE;
 }
@@ -538,8 +542,11 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			if (Win == 1)
 			{
 				SendGame(SOC_GAMEEND, "");
-				//초기화
+				CWnd::MessageBox("백이 승리했습니다. 새 게임을 시작합니다.", "백돌 승리", MB_OK);
+				Sleep(1000);
 				InitGame();
+				Invalidate(TRUE);
+				GetDlgItem(IDC_BUTTON_START)->EnableWindow(TRUE);
 			}
 			// 차례 변경
 			m_bMe = FALSE;
