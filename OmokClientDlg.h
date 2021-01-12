@@ -62,4 +62,6 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CStatic m_timer;
 	int sec = 30;
+	CButton m_giveup;
+	afx_msg void OnBnClickedButtonGiveup();
 };
