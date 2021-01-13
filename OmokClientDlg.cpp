@@ -205,7 +205,13 @@ void COmokClientDlg::DrawRec() {
 
 	CClientDC dc(this);
 	CBrush br;
+	CBrush br2;
 	br.CreateSolidBrush(RGB(218, 164, 43));
+
+	CBrush* bbr = dc.SelectObject(&br);
+	dc.Rectangle(10, 10, 60 + 525, 60 + 525);
+	dc.SelectObject(bbr);
+
 
 	CBrush* lbr = dc.SelectObject(&br);
 	dc.Rectangle(35, 35, 35 + 525, 35 + 525);
@@ -291,10 +297,10 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 
 	int iType = atoi((char*)(LPCTSTR)strTmp);
 
+	// 게임 시작 
 	if (iType == SOC_GAMESTART) {
-		m_bStartSvr = TRUE;
-		
 		if (m_bStart) {
+			m_bStartSvr = TRUE;
 			MessageBox(_T("게임이 시작되었습니다."));
 			m_strMe = _T("상대방의 차례입니다.");
 			m_strStatus = _T("대기 하세요.");
@@ -302,6 +308,19 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 			UpdateData(FALSE);
 		}
 
+	}
+
+	// 게임 준비
+	else if (iType == SOC_GAMEREADY) {
+		m_bStartSvr = TRUE;
+		if (m_bStart) {
+			SendGame(SOC_GAMESTART, "");
+			MessageBox(_T("게임이 시작되었습니다."));
+			m_strMe = _T("상대방의 차례입니다.");
+			m_strStatus = _T("대기 하세요.");
+			m_bMe = FALSE;
+			UpdateData(FALSE);
+		}
 	}
 
 	// 채팅
