@@ -64,4 +64,8 @@ public:
 	int sec = 30;
 	CButton m_giveup;
 	afx_msg void OnBnClickedButtonGiveup();
+	CStatic m_whiteScore;
+	CStatic m_blackScore;
+	int blackscore = 0;
+	int whitescore = 0;
 };
