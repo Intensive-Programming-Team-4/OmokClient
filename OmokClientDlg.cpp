@@ -188,7 +188,7 @@ void COmokClientDlg::InitGame()
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
 			m_bGame[i][j] = FALSE;
-			m_bGame[i][j] = FALSE;
+			m_bStone[i][j] = FALSE;
 		}
 	}
 	m_bStartSvr = FALSE;
