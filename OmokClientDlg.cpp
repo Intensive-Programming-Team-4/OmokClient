@@ -376,14 +376,13 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 //			MessageBox(msg);
 //			dc.Ellipse(iCol - 35 / 2, iRow - 35 / 2, iCol + 35 / 2, iRow + 35 / 2);
 //			dc.SelectObject(p_old_brush);
-
-			// 차례 변경
-			m_bMe = TRUE;
-			m_strMe = _T("당신의 차례입니다.");
-			m_strStatus = _T("원하는 곳을 선택 하세요.");
-			change = FALSE;
-			UpdateData(FALSE);
 		}
+		// 차례 변경
+		m_bMe = TRUE;
+		m_strMe = _T("당신의 차례입니다.");
+		m_strStatus = _T("원하는 곳을 선택 하세요.");
+		change = FALSE;
+		UpdateData(FALSE);
 	}
 
 	// 게임에서 패배할 시 혹은 기권할 시
@@ -675,6 +674,9 @@ void COmokClientDlg::OnTimer(UINT_PTR nIDEvent)
 				CString str;
 				str.Format(_T("%02d,%02d"), -1, -1);
 				SendGame(SOC_CHECK, str);
+				m_strMe = _T("상대방의 차례입니다.");
+				m_strStatus = _T("대기 하세요.");
+				UpdateData(FALSE);
 			}
 		}
 		else {
