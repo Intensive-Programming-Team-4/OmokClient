@@ -3,7 +3,14 @@
 //
 
 #pragma once
+#include <vector>
+#include <utility>
 
+typedef struct Point {
+	int x1, y1;
+	int x2, y2;
+	int row, col;
+} p;
 
 // COmokClientDlg 대화 상자
 class COmokClientDlg : public CDialogEx
@@ -68,4 +75,11 @@ public:
 	CStatic m_blackScore;
 	int blackscore = 0;
 	int whitescore = 0;
+
+	std::vector<p> vBlack;
+	std::vector<p> vWhite;
+	std::vector<p>::iterator iter;
+	afx_msg void OnBnClickedButtonUndo();
+	void DrawDol();
+	BOOL change;
 };
