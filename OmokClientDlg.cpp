@@ -189,8 +189,8 @@ HCURSOR COmokClientDlg::OnQueryDragIcon()
 
 void COmokClientDlg::InitGame()
 {
-	for (int i = 0; i < 15; i++) {
-		for (int j = 0; j < 15; j++) {
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
 			m_bGame[i][j] = FALSE;
 			m_bStone[i][j] = FALSE;
 		}
@@ -359,6 +359,8 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 			p gameP;
 			gameP.row = iRow;
 			gameP.col = iCol;
+			m_bGame[iRow][iCol] = TRUE;
+//			m_bStone[iRow][iCol] = TRUE;
 
 			CString msg;
 			iCol = (iCol + 1) * 35;
@@ -374,14 +376,13 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 //			MessageBox(msg);
 //			dc.Ellipse(iCol - 35 / 2, iRow - 35 / 2, iCol + 35 / 2, iRow + 35 / 2);
 //			dc.SelectObject(p_old_brush);
-
-			// 차례 변경
-			m_bMe = TRUE;
-			m_strMe = _T("당신의 차례입니다.");
-			m_strStatus = _T("원하는 곳을 선택 하세요.");
-			change = FALSE;
-			UpdateData(FALSE);
 		}
+		// 차례 변경
+		m_bMe = TRUE;
+		m_strMe = _T("당신의 차례입니다.");
+		m_strStatus = _T("원하는 곳을 선택 하세요.");
+		change = FALSE;
+		UpdateData(FALSE);
 	}
 
 	// 게임에서 패배할 시 혹은 기권할 시
@@ -413,6 +414,9 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		m_bGame[vBlack.back().row][vBlack.back().col] = FALSE;
 		m_bStone[vBlack.back().row][vBlack.back().col] = FALSE;
 		vBlack.pop_back();
+		m_bGame[vWhite.back().row][vWhite.back().col] = FALSE;
+		m_bStone[vWhite.back().row][vWhite.back().col] = FALSE;
+		vWhite.pop_back();
 	}
 	Invalidate(FALSE);
 
@@ -488,8 +492,8 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			gameP.col = nCol;
 			vWhite.push_back(gameP);
 
-//			dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
-//			dc.SelectObject(p_old_brush);
+			//			dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
+			//			dc.SelectObject(p_old_brush);
 
 			CString str;
 			str.Format(_T("%02d,%02d"), nRow, nCol);
@@ -670,6 +674,9 @@ void COmokClientDlg::OnTimer(UINT_PTR nIDEvent)
 				CString str;
 				str.Format(_T("%02d,%02d"), -1, -1);
 				SendGame(SOC_CHECK, str);
+				m_strMe = _T("상대방의 차례입니다.");
+				m_strStatus = _T("대기 하세요.");
+				UpdateData(FALSE);
 			}
 		}
 		else {
@@ -706,10 +713,15 @@ void COmokClientDlg::OnBnClickedButtonGiveup()
 void COmokClientDlg::OnBnClickedButtonUndo()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	if (vWhite.size() == 0)
-		return;
 	if (m_bStart && m_bMe && !change) {
+		if (vWhite.size() == 0)
+			return;
+		m_bGame[vWhite.back().row][vWhite.back().col] = FALSE;
+		m_bStone[vWhite.back().row][vWhite.back().col] = FALSE;
 		vWhite.pop_back();
+		m_bGame[vBlack.back().row][vBlack.back().col] = FALSE;
+		m_bStone[vBlack.back().row][vBlack.back().col] = FALSE;
+		vBlack.pop_back();
 		change = TRUE;
 		SendGame(SOC_UNDO, "");
 		Invalidate(TRUE);
