@@ -189,8 +189,8 @@ HCURSOR COmokClientDlg::OnQueryDragIcon()
 
 void COmokClientDlg::InitGame()
 {
-	for (int i = 0; i < 15; i++) {
-		for (int j = 0; j < 15; j++) {
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
 			m_bGame[i][j] = FALSE;
 			m_bStone[i][j] = FALSE;
 		}
@@ -493,8 +493,8 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			gameP.col = nCol;
 			vWhite.push_back(gameP);
 
-//			dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
-//			dc.SelectObject(p_old_brush);
+			//			dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
+			//			dc.SelectObject(p_old_brush);
 
 			CString str;
 			str.Format(_T("%02d,%02d"), nRow, nCol);
