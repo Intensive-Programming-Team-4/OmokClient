@@ -76,7 +76,7 @@ public:
 	CStatic m_blackScore; // 흑돌 점수 표시할 텍스트
 	int blackscore = 0;
 	int whitescore = 0;
-
+	
 	std::vector<p> vBlack; // 흑돌의 좌표를 저장할 벡터
 	std::vector<p> vWhite; // 백돌의 좌표를 저장할 벡터
 	std::vector<p>::iterator iter;
