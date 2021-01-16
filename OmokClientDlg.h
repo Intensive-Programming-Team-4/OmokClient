@@ -48,8 +48,9 @@ public:
 	CString m_strStatus;
 	afx_msg void OnBnClickedButtonConnect();
 
-	BOOL m_bGame[15][15];
-	BOOL m_bStone[15][15];
+	BOOL m_bGame[16][16];
+	BOOL m_bStone[16][16];
+
 
 	int m_iOrder;
 
