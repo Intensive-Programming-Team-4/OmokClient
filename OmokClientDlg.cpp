@@ -177,6 +177,7 @@ void COmokClientDlg::OnPaint()
 	// 바둑판 생성
 	DrawRec();
 	DrawLine();
+	// 바둑돌 그리기
 	DrawDol();
 }
 
@@ -187,24 +188,26 @@ HCURSOR COmokClientDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+// 게임 초기화
 void COmokClientDlg::InitGame()
 {
+	// 오목판 초기화
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			m_bGame[i][j] = FALSE;
 			m_bStone[i][j] = FALSE;
 		}
 	}
-	m_bStartSvr = FALSE;
-	m_bStart = FALSE;
-	m_bMe = FALSE;
-	m_bSvrEnd = FALSE;
-	m_bCntEnd = FALSE;
-	m_iOrder = 1;
-	SetTimer(1, 1000, NULL);
-	vBlack.clear();
-	vWhite.clear();
-	change = FALSE;
+	m_bStartSvr = FALSE; // 서버가 준비를 했는지
+	m_bStart = FALSE; // 게임이 시작되었는지
+	m_bMe = FALSE; // 클라이언트 차례인지
+	m_bSvrEnd = FALSE; // 서버에서 게임이 끝났는지
+	m_bCntEnd = FALSE; // 클라이언트에서 게임이 끝났는지
+//	m_iOrder = 1;
+	SetTimer(1, 1000, NULL); // 타이머는 1초에 한번씩 작동
+	vBlack.clear(); // 흑돌이 착수한 좌표들 초기화
+	vWhite.clear(); // 백돌이 착수한 좌표들 초기화
+	change = FALSE; // 무르기를 한 번 진행한 경우 TRUE로 변경(무르기는 한 턴 당 한번만)
 }
 
 // 사각형 그리기 (250 *250 시작은 (35, 35))
@@ -336,7 +339,7 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		m_list.AddString(str);
 	}
 
-	// 보드판 클릭
+	// 서버의 보드판 클릭
 	else if (iType == SOC_CHECK) {
 		
 		str.Format(_T("%s"), (LPCTSTR)(pTmp + 1));
@@ -370,7 +373,7 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 			gameP.y1 = iRow - 35 / 2;
 			gameP.x2 = iCol + 35 / 2;
 			gameP.y2 = iRow + 35 / 2;
-			vBlack.push_back(gameP);
+			vBlack.push_back(gameP); // 흑돌의 좌표 저장
 
 //			msg.Format(_T("%03d %03d"), iRow, iCol);
 //			MessageBox(msg);
@@ -385,7 +388,7 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		UpdateData(FALSE);
 	}
 
-	// 게임에서 패배할 시 혹은 기권할 시
+	// 게임에서 패배할 시
 	else if (iType == SOC_GAMEEND) {
 		m_bSvrEnd = TRUE;
 		CWnd::MessageBox("흑이 승리했습니다. 새 게임을 시작합니다.", "흑돌 승리", MB_OK);
@@ -398,6 +401,7 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		score.Format(_T("%d"), ++blackscore);
 		m_blackScore.SetWindowText(score);
 	}
+	// 게임에서 기권할 시
 	else if (iType == SOC_GIVEUP) {
 		m_bCntEnd = TRUE;
 		CWnd::MessageBox("백이 승리했습니다. 새 게임을 시작합니다.", "백돌 승리", MB_OK);
@@ -410,6 +414,7 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		score.Format(_T("%d"), ++whitescore);
 		m_whiteScore.SetWindowText(score);
 	}
+	// 무르기 버튼을 눌렀을 시 흑돌 하나 백돌 하나 제거
 	else if (iType == SOC_UNDO) {
 		m_bGame[vBlack.back().row][vBlack.back().col] = FALSE;
 		m_bStone[vBlack.back().row][vBlack.back().col] = FALSE;
@@ -418,7 +423,7 @@ LPARAM COmokClientDlg::OnReceive(UINT wParam, LPARAM lParam) {
 		m_bStone[vWhite.back().row][vWhite.back().col] = FALSE;
 		vWhite.pop_back();
 	}
-	Invalidate(FALSE);
+	Invalidate(FALSE); // 다시 그리기
 
 	return TRUE;
 }
@@ -490,7 +495,7 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			gameP.y2 = point.y + 35 / 2;
 			gameP.row = nRow;
 			gameP.col = nCol;
-			vWhite.push_back(gameP);
+			vWhite.push_back(gameP); // 백돌의 좌표 저장
 
 			//			dc.Ellipse(point.x - 35 / 2, point.y - 35 / 2, point.x + 35 / 2, point.y + 35 / 2);
 			//			dc.SelectObject(p_old_brush);
@@ -620,7 +625,8 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 				sCol--;
 			}
 
-
+			// 클라이언트(백)가 승리 시
+			// 백돌은 33, 44 금수조건이 없음
 			if (Win == 1)
 			{
 				m_bCntEnd = TRUE;
@@ -647,7 +653,7 @@ void COmokClientDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
-
+// 게임 준비를 눌렀을 경우
 void COmokClientDlg::OnBnClickedButtonStart()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -656,7 +662,7 @@ void COmokClientDlg::OnBnClickedButtonStart()
 	GetDlgItem(IDC_BUTTON_START)->EnableWindow(FALSE);
 }
 
-
+// 타이머 동작 함수
 void COmokClientDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
@@ -664,12 +670,13 @@ void COmokClientDlg::OnTimer(UINT_PTR nIDEvent)
 
 	switch (nIDEvent) {
 	case 1:
+		// 게임이 시작했고 클라이언트의 차례인 경우
 		if (m_bStart && m_bMe) {
-			if (sec > 0) {
+			if (sec > 0) { // 남은 시간이 1초 이상 남으면
 				time.Format(_T("%d"), sec--);
 			}
-			else {
-				m_bMe = FALSE;
+			else { // 남은 시간이 0초 이하가 되면
+				m_bMe = FALSE; // 턴이 넘어감
 
 				CString str;
 				str.Format(_T("%02d,%02d"), -1, -1);
@@ -679,23 +686,25 @@ void COmokClientDlg::OnTimer(UINT_PTR nIDEvent)
 				UpdateData(FALSE);
 			}
 		}
+		// 그렇지 않으면 타이머는 30초 고정
 		else {
 			sec = 30;
 			time.Format(_T("%d"), sec);
 		}
-		m_timer.SetWindowText(time);
+		m_timer.SetWindowText(time); // 화면에 지속적으로 출력
 		break;
 	}
 
 	CDialogEx::OnTimer(nIDEvent);
 }
 
-
+// 기권 버튼 누를 시 동작
 void COmokClientDlg::OnBnClickedButtonGiveup()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// 게임을 시작하지 않으면 눌러도 반응하지 않음
 	if (m_bStart) {
-		m_bSvrEnd = TRUE;
+		m_bSvrEnd = TRUE; // 서버가 이김
 		SendGame(SOC_GIVEUP, "");
 		CWnd::MessageBox("흑이 승리했습니다. 새 게임을 시작합니다.", "흑돌 승리", MB_OK);
 		Sleep(1000);
@@ -703,32 +712,35 @@ void COmokClientDlg::OnBnClickedButtonGiveup()
 		Invalidate(TRUE);
 		GetDlgItem(IDC_BUTTON_START)->EnableWindow(TRUE);
 
+		// 화면에 점수 표시
 		CString score;
 		score.Format(_T("%d"), ++blackscore);
 		m_blackScore.SetWindowText(score);
 	}
 }
 
-
+// 무르기 버튼을 눌렀을 시 동작
 void COmokClientDlg::OnBnClickedButtonUndo()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// 게임을 시작하고 서버의 차례이면서 무르기 버튼을 누르지않았으면
 	if (m_bStart && m_bMe && !change) {
-		if (vWhite.size() == 0)
+		if (vWhite.size() == 0) // 지울 돌이 없으면 종료
 			return;
+		// 좌표 삭제
 		m_bGame[vWhite.back().row][vWhite.back().col] = FALSE;
 		m_bStone[vWhite.back().row][vWhite.back().col] = FALSE;
 		vWhite.pop_back();
 		m_bGame[vBlack.back().row][vBlack.back().col] = FALSE;
 		m_bStone[vBlack.back().row][vBlack.back().col] = FALSE;
 		vBlack.pop_back();
-		change = TRUE;
+		change = TRUE; // 다음 턴이 돌아와야 무르기 버튼 사용 가능
 		SendGame(SOC_UNDO, "");
-		Invalidate(TRUE);
+		Invalidate(TRUE); // 전체 다시 그리기
 	}
 }
 
-
+// 바둑돌 그리기 수행(흑돌, 백돌 둘다)
 void COmokClientDlg::DrawDol()
 {
 	// TODO: 여기에 구현 코드 추가.
